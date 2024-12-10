@@ -1,0 +1,69 @@
+---
+title: "DS_Project"
+author: "Anthéa von Borowski"
+date: "2024-12-09"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ressources
+
+### Libraries
+
+```{r lib}
+#install.packages("sf")
+#install.packages("dplyr")
+#install.packages("ggplot2")
+
+
+library(sf)
+library(dplyr)
+library(ggplot2)
+```
+
+### Raw Data
+
+```{r rawdata}
+#ROHDATEN
+data_nyc<-read.csv("Data\\baumnyc.csv")
+inc_zip<-read.csv("Data\\us_income_zipcode.csv")
+demographics<-read.csv("Data\\demographics.csv", sep=",")
+zcta_zones<-st_read("Data\\ZCTA\\tl_2016_us_zcta510.shp")
+
+```
+
+### Restricting data
+```{r }
+
+required_columns<-c("common_name","scientific_name","city", "state", "longitude_coordinate", "latitude_coordinate", "zipcode", "condition", "native", "greater_metro")
+baumnyc<-data_nyc[, required_columns, drop=F]
+zip_nyc<-inc_zip[inc_zip$Year ==2015,]
+
+```
+
+### Mapping of locations to ZCTA zip-codes
+
+```{r mapping}
+
+if (st_crs(zcta_zones)$epsg != 4326) {
+  zcta_zones <- st_transform(zcta_zones, crs = 4326)
+}
+
+points <- st_as_sf(baumnyc, 
+                   coords = c("longitude_coordinate", "latitude_coordinate"), 
+                   crs = 4326)
+
+if (!st_crs(zcta_zones) == st_crs(points)) {
+  stop("Les CRS des zones ZCTA et des points ne correspondent pas.")
+}
+
+points_subset<-points[1:100,]
+results <- st_join(point_subset, zcta_zones)
+
+
+```
+
+

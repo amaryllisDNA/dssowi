@@ -17,11 +17,12 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages("sf")
 #install.packages("dplyr")
 #install.packages("ggplot2")
-
+#install.pakages("readr")
 
 library(sf)
 library(dplyr)
 library(ggplot2)
+library(readr)
 ```
 
 ### Raw Data
@@ -31,8 +32,7 @@ library(ggplot2)
 data_nyc<-read.csv("Data\\baumnyc.csv")
 inc_zip<-read.csv("Data\\us_income_zipcode.csv")
 demographics<-read.csv("Data\\demographics.csv", sep=",")
-zcta_zones<-st_read("Data\\ZCTA\\tl_2016_us_zcta510.shp")
-
+zcta_nyc <- read.csv("Data\\NYC\\ZCTA_NYC.csv", sep = ",", quote = "\"", stringsAsFactors = FALSE)
 ```
 
 ### Restricting data
@@ -48,21 +48,38 @@ zip_nyc<-inc_zip[inc_zip$Year ==2015,]
 
 ```{r mapping}
 
-if (st_crs(zcta_zones)$epsg != 4326) {
-  zcta_zones <- st_transform(zcta_zones, crs = 4326)
+zcta_zones <- st_as_sf(zcta_nyc, wkt = "the_geom", crs = 4269) 
+
+
+points_data <- data.frame(
+  longitude = baumnyc$longitude_coordinate,
+  latitude = baumnyc$latitude_coordinate)
+
+
+# Convert points to an `sf` object
+points_sf <- st_as_sf(points_data, coords = c("longitude", "latitude"), crs = 4326)
+points_sf <- st_transform(points_sf, st_crs(zcta_zones))
+
+invalid_geometries <- which(!st_is_valid(zcta_zones))
+if (length(invalid_geometries) > 0) {
+  cat("Invalid geometries found:", length(invalid_geometries), "\n")
+  
+  # Repair geometries
+  zcta_zones <- st_make_valid(zcta_zones)
+  cat("Repaired invalid geometries.\n")
 }
 
-points <- st_as_sf(baumnyc, 
-                   coords = c("longitude_coordinate", "latitude_coordinate"), 
-                   crs = 4326)
 
-if (!st_crs(zcta_zones) == st_crs(points)) {
-  stop("Les CRS des zones ZCTA et des points ne correspondent pas.")
+invalid_geometries
+# Verify again
+if (all(st_is_valid(zcta_zones))) {
+  cat("All geometries are valid now.\n")
+} else {
+  stop("Some geometries remain invalid.")
 }
 
-points_subset<-points[1:100,]
-results <- st_join(point_subset, zcta_zones)
 
+results <- st_join(points_sf, zcta_zones)
 
 ```
 

@@ -13,7 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Libraries
 
-```{r lib}
+```{r lib, message=F}
 #install.packages("sf")
 #install.packages("dplyr")
 #install.packages("ggplot2")
@@ -32,7 +32,10 @@ library(readr)
 data_nyc<-read.csv("Data\\baumnyc.csv")
 inc_zip<-read.csv("Data\\us_income_zipcode.csv")
 demographics<-read.csv("Data\\demographics.csv", sep=",")
-zcta_nyc <- read.csv("Data\\NYC\\ZCTA_NYC.csv", sep = ",", quote = "\"", stringsAsFactors = FALSE)
+zcta_us<-st_read("Data\\ZCTA\\tl_2016_us_zcta510.shp")
+nyc_codes<-read.csv("Data\\NYC\\zip-codes-data.csv")
+
+
 ```
 
 ### Restricting data
@@ -41,6 +44,8 @@ zcta_nyc <- read.csv("Data\\NYC\\ZCTA_NYC.csv", sep = ",", quote = "\"", strings
 required_columns<-c("common_name","scientific_name","city", "state", "longitude_coordinate", "latitude_coordinate", "zipcode", "condition", "native", "greater_metro")
 baumnyc<-data_nyc[, required_columns, drop=F]
 zip_nyc<-inc_zip[inc_zip$Year ==2015,]
+
+summary(inc_zip$Geographic.Area.Name)
 
 ```
 

@@ -14,18 +14,18 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Libraries
 
 ```{r lib, message=F}
-#install.packages("sf")
 #install.packages("dplyr")
 #install.packages("ggplot2")
 #install.pakages("readr")
 
-library(sf)
 library(dplyr)
 library(ggplot2)
 library(readr)
 ```
 
-### Raw Data
+### Data Import
+
+Data has been previously selected and modified in "data_import.Rmd".
 
 ```{r rawdata}
 #ROHDATEN
@@ -44,8 +44,10 @@ nyc_codes<-read.csv("Data\\NYC\\zip-codes-data.csv")
 required_columns<-c("common_name","scientific_name","city", "state", "longitude_coordinate", "latitude_coordinate", "zipcode", "condition", "native", "greater_metro")
 baumnyc<-data_nyc[, required_columns, drop=F]
 zip_nyc<-inc_zip[inc_zip$Year ==2015,]
+zcta_usa<-zcta_us[zcta_us$ZCTA5CE10 %in% 6390:14905,]
 
-summary(inc_zip$Geographic.Area.Name)
+
+
 
 ```
 
@@ -53,38 +55,16 @@ summary(inc_zip$Geographic.Area.Name)
 
 ```{r mapping}
 
-zcta_zones <- st_as_sf(zcta_nyc, wkt = "the_geom", crs = 4269) 
+st_crs(zcta_usa)
+
+coordinates<-data.frame(longitude=baumnyc$longitude_coordinate, latitude=baumnyc$latitude_coordinate)
+
+points <- st_as_sf(baumnyc, coords = c("longitude_coordinate", "latitude_coordinate"), crs = 4326)
+
+zcta <- st_transform(zcta_usa, st_crs(points))
+result <- st_join(st_sf(geometry = points), zcta, join = st_within)
 
 
-points_data <- data.frame(
-  longitude = baumnyc$longitude_coordinate,
-  latitude = baumnyc$latitude_coordinate)
-
-
-# Convert points to an `sf` object
-points_sf <- st_as_sf(points_data, coords = c("longitude", "latitude"), crs = 4326)
-points_sf <- st_transform(points_sf, st_crs(zcta_zones))
-
-invalid_geometries <- which(!st_is_valid(zcta_zones))
-if (length(invalid_geometries) > 0) {
-  cat("Invalid geometries found:", length(invalid_geometries), "\n")
-  
-  # Repair geometries
-  zcta_zones <- st_make_valid(zcta_zones)
-  cat("Repaired invalid geometries.\n")
-}
-
-
-invalid_geometries
-# Verify again
-if (all(st_is_valid(zcta_zones))) {
-  cat("All geometries are valid now.\n")
-} else {
-  stop("Some geometries remain invalid.")
-}
-
-
-results <- st_join(points_sf, zcta_zones)
 
 ```
 

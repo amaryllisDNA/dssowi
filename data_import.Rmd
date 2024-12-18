@@ -33,11 +33,12 @@ library(Hmisc)
 
 ```{r rawdata}
 #ROHDATEN
-data_nyc<-read.csv("Data\\Raw\\baumnyc.csv")
 inc_zip<-read.csv("Data\\Raw\\us_income_zipcode.csv")
 zcta<-st_read("Data\\Raw\\ZCTA\\tl_2016_us_zcta510.shp")
 nyc_codes<-read.csv("Data\\NYC\\zip-codes-data.csv")
 demog<-read.csv("Data\\Raw\\ethn_zip.csv")
+data_nyc<-read.csv("Data\\Raw\\baumnyc.csv")
+
 
 
 ```
@@ -69,7 +70,7 @@ inc_zip<-inc_zip[inc_zip$Year ==2015,]
 inc_zip$ZCTA<-as.numeric(substring(inc_zip$Geographic.Area.Name, 6)) 
 
 inc_zip_ny<-inc_zip[inc_zip$ZCTA %in% 6390:14905,]
-baumnyc$mean_income <- inc_zip$Households.Mean.Income..Dollars.[match(baumnyc$ZCTACE10, inc_zip_ny$ZCTA)]
+baumnyc$mean_income <- inc_zip$Households.Mean.Income.Dollars.[match(baumnyc$ZCTACE10, inc_zip_ny$ZCTA)]
 
 ```
 
@@ -85,13 +86,11 @@ demog_ny<-demog[-1,]
 demog_ny<-demog[demog$ZCTA %in% 6390:14905,]
 
 baumnyc$pop<-as.numeric(demog_ny$B03002_001E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])
-baumnyc$white_nonhisp<-as.numeric(demog_ny$B03002_003E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
-baumnyc$afroam_nonhisp<-as.numeric(demog_ny$B03002_004E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
-baumnyc$asian_nonhisp<-as.numeric()
-head(demog)
-summary(baumnyc)
-
-
+baumnyc$eth_white_nonhisp<-as.numeric(demog_ny$B03002_003E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
+baumnyc$eth_afroam_nonhisp<-as.numeric(demog_ny$B03002_004E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
+baumnyc$eth_asian_nonhisp<-as.numeric(demog_ny$B03002_006E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
+baumnyc$eth_hisp<-as.numeric(demog_ny$B03002_012E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
+baumnyc$eth_other<-1-(baumnyc$eth_white_nonhisp+baumnyc$eth_afroam_nonhisp+baumnyc$eth_asian_nonhisp+baumnyc$eth_hisp)
 
 
 ``` 

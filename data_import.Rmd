@@ -7,6 +7,8 @@ output: pdf_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+rm(list=ls())
 ```
 
 ## Ressources
@@ -85,7 +87,7 @@ demog_ny<-demog[demog$ZCTA %in% 6390:14905,]
 baumnyc$pop<-as.numeric(demog_ny$B03002_001E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])
 baumnyc$white_nonhisp<-as.numeric(demog_ny$B03002_003E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
 baumnyc$afroam_nonhisp<-as.numeric(demog_ny$B03002_004E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
-baumnyc$asian_nonhisp<-as.numeric(demojh g)
+baumnyc$asian_nonhisp<-as.numeric()
 head(demog)
 summary(baumnyc)
 

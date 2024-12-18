@@ -17,55 +17,79 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages("sf")
 #install.packages("dplyr")
 #install.packages("ggplot2")
-#install.pakages("readr")
+#install.packages("readr")
+#install.packages("Hmisc")
 
 library(sf)
 library(dplyr)
 library(ggplot2)
 library(readr)
+library(Hmisc)
 ```
 
 ### Raw Data
 
 ```{r rawdata}
 #ROHDATEN
-data_nyc<-read.csv("Data\\baumnyc.csv")
-inc_zip<-read.csv("Data\\us_income_zipcode.csv")
-demographics<-read.csv("Data\\demographics.csv", sep=",")
-zcta_us<-st_read("Data\\ZCTA\\tl_2016_us_zcta510.shp")
+data_nyc<-read.csv("Data\\Raw\\baumnyc.csv")
+inc_zip<-read.csv("Data\\Raw\\us_income_zipcode.csv")
+zcta<-st_read("Data\\Raw\\ZCTA\\tl_2016_us_zcta510.shp")
 nyc_codes<-read.csv("Data\\NYC\\zip-codes-data.csv")
+demog<-read.csv("Data\\Raw\\ethn_zip.csv")
 
 
 ```
 
-### Restricting data
-```{r }
-
-required_columns<-c("common_name","scientific_name","city", "state", "longitude_coordinate", "latitude_coordinate", "zipcode", "condition", "native", "greater_metro")
-baumnyc<-data_nyc[, required_columns, drop=F]
-zip_nyc<-inc_zip[inc_zip$Year ==2015,]
-zcta_usa<-zcta_us[zcta_us$ZCTA5CE10 %in% 6390:14905,]
-
-
-
-
-```
 
 ### Mapping of locations to ZCTA zip-codes
 
 ```{r mapping}
 
-st_crs(zcta_usa)
+points_ny <- st_as_sf(data_nyc, coords = c("longitude_coordinate", "latitude_coordinate"), crs = 4326) #transponing lat, long to point object
 
-coordinates<-data.frame(longitude=baumnyc$longitude_coordinate, latitude=baumnyc$latitude_coordinate)
+zcta_ny<-zcta[zcta$ZCTA5CE10 %in% 6390:14905,] #ignore all ZCTAs which are not NY
+zcta_ny <- st_transform(zcta_ny, st_crs(points_ny)) #harmonize CRS values
 
-points <- st_as_sf(baumnyc, coords = c("longitude_coordinate", "latitude_coordinate"), crs = 4326)
-
-zcta <- st_transform(zcta_usa, st_crs(points))
-result <- st_join(st_sf(geometry = points), zcta, join = st_within)
-
+data <- st_join(st_sf(geometry = points_ny), zcta_ny, join = st_within) #join datasets to match zcta to trees
+required_columns<-c("common_name","scientific_name","city", "state", "geometry", "zipcode", "condition", "native", "greater_metro", "ZCTA5CE10") #
+baumnyc<-data[, required_columns, drop = F]
+baumnyc$park<-is.na(baumnyc$ZCTA5CE10)
 
 
 ```
 
 
+### Processing Income Data
+
+```{r inc}
+
+inc_zip<-inc_zip[inc_zip$Year ==2015,]
+inc_zip$ZCTA<-as.numeric(substring(inc_zip$Geographic.Area.Name, 6)) 
+
+inc_zip_ny<-inc_zip[inc_zip$ZCTA %in% 6390:14905,]
+baumnyc$mean_income <- inc_zip$Households.Mean.Income..Dollars.[match(baumnyc$ZCTACE10, inc_zip_ny$ZCTA)]
+
+```
+
+### Processing Ethnicities Data
+
+```{r eth}
+
+#categories: white non hispanic/latino, black non hispanic/latino, asian non hispanic/latino, hispanic/latino, other
+
+demog$ZCTA<-as.numeric(substring(demog$NAME, 7))
+
+demog_ny<-demog[-1,]
+demog_ny<-demog[demog$ZCTA %in% 6390:14905,]
+
+baumnyc$pop<-as.numeric(demog_ny$B03002_001E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])
+baumnyc$white_nonhisp<-as.numeric(demog_ny$B03002_003E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
+baumnyc$afroam_nonhisp<-as.numeric(demog_ny$B03002_004E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
+baumnyc$asian_nonhisp<-as.numeric(demojh g)
+head(demog)
+summary(baumnyc)
+
+
+
+
+``` 

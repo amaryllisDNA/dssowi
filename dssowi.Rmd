@@ -32,7 +32,7 @@ Data has been previously selected and modified in "data_import.Rmd".
 data_nyc<-read.csv("Data\\baumnyc.csv")
 inc_zip<-read.csv("Data\\us_income_zipcode.csv")
 demographics<-read.csv("Data\\demographics.csv", sep=",")
-zcta_us<-st_read("Data\\ZCTA\\tl_2016_us_zcta510.shp")
+zcta<-st_read("Data\\ZCTA\\tl_2016_us_zcta510.shp")
 nyc_codes<-read.csv("Data\\NYC\\zip-codes-data.csv")
 
 

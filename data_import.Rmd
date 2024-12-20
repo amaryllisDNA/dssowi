@@ -120,7 +120,13 @@ baumnyc$condition<-car::recode(baumnyc$condition, "'poor'=-1; 'fair' = 0; 'good'
 
 
 baumnyc_gp<-data.frame(ZCTA = unique(baumnyc$ZCTA5CE10))
-baumnyc_gp$mean_income <- inc_zip$Households.Median.Income..Dollars.[match(baumnyc_gp$ZCTA, inc_zip$ZCTA)]
+
+baumnyc_gp<- baumnyc %>%
+  group_by(ZCTA = ZCTA5CE10) %>%
+  dplyr::summarize(mean_native = mean(native, na.rm=T),
+                   mean_condition = mean(condition, na.rm = T),
+                   mean_income = mean(mean_income))
+
 baumnyc_gp$pop<-as.numeric(demog_ny$B03002_001E[match(baumnyc_gp$ZCTA, demog_ny$ZCTA)])
 baumnyc_gp$eth_white_nonhisp<-as.numeric(demog_ny$B03002_003E[match(baumnyc_gp$ZCTA, demog_ny$ZCTA)])/baumnyc_gp$pop
 baumnyc_gp$eth_afroam_nonhisp<-as.numeric(demog_ny$B03002_004E[match(baumnyc_gp$ZCTA, demog_ny$ZCTA)])/baumnyc_gp$pop
@@ -129,7 +135,6 @@ baumnyc_gp$eth_hisp<-as.numeric(demog_ny$B03002_012E[match(baumnyc_gp$ZCTA, demo
 baumnyc_gp$eth_other<-1-(baumnyc_gp$eth_white_nonhisp+baumnyc_gp$eth_afroam_nonhisp+baumnyc_gp$eth_asian_nonhisp+baumnyc_gp$eth_hisp)
 baumnyc_gp$count_tree<-count_tree[as.character(baumnyc_gp$ZCTA)]
 baumnyc_gp$count_tree[is.na(baumnyc_gp$count_tree)]<-0
-
 
 
 ```

@@ -51,9 +51,7 @@ library(here)
 inc_zip<-read.csv(here("Data", "Raw", "us_income_zipcode.csv"))
 zcta<-st_read(here("Data", "Raw", "ZCTA", "tl_2016_us_zcta510.shp"))
 data_nyc<-read.csv(here("Data", "Raw", "baumnyc.csv"))
-
-st_area(zcta)
-
+demog<-read.csv(here("Data", "Raw", "ethn_zip.csv"))
 
 ```
 
@@ -66,6 +64,7 @@ points_ny <- st_as_sf(data_nyc, coords = c("longitude_coordinate", "latitude_coo
 
 zcta_ny<-zcta[zcta$ZCTA5CE10 %in% 6390:14905,] #ignore all ZCTAs which are not NY
 zcta_ny <- st_transform(zcta_ny, st_crs(points_ny)) #harmonize CRS values
+zcta_ny$surface<-st_area(zcta_ny)
 
 data <- st_join(st_sf(geometry = points_ny), zcta_ny, join = st_within) #join datasets to match zcta to trees
 required_columns<-c("common_name","scientific_name","city", "state", "geometry", "zipcode", "condition", "native", "greater_metro", "ZCTA5CE10") 
@@ -84,8 +83,6 @@ count_tree
 inc_zip<-inc_zip[inc_zip$Year ==2015,]
 inc_zip$ZCTA<-as.numeric(substring(inc_zip$Geographic.Area.Name, 6)) 
 
-
-names(inc_zip)
 inc_zip_ny<-inc_zip[inc_zip$ZCTA %in% 6390:14905,]
 baumnyc$mean_income <- inc_zip$Households.Median.Income..Dollars.[match(baumnyc$ZCTA5CE10, inc_zip$ZCTA)]
 
@@ -109,8 +106,19 @@ baumnyc$eth_afroam_nonhisp<-as.numeric(demog_ny$B03002_004E[match(baumnyc$ZCTA5C
 baumnyc$eth_asian_nonhisp<-as.numeric(demog_ny$B03002_006E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
 baumnyc$eth_hisp<-as.numeric(demog_ny$B03002_012E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
 baumnyc$eth_other<-1-(baumnyc$eth_white_nonhisp+baumnyc$eth_afroam_nonhisp+baumnyc$eth_asian_nonhisp+baumnyc$eth_hisp)
+baumnyc$count_tree<-count_tree[baumnyc$ZCTA5CE10]
+baumnyc$count_tree[is.na(baumnyc$count_tree)]<-0
+baumnyc$zcta_surface<-as.numeric(zcta_ny$surface[match(baumnyc$ZCTA5CE10, zcta_ny$ZCTA5CE10)])/1000000
+baumnyc$pop_density<-baumnyc$pop/baumnyc$zcta_surface
+baumnyc$tree_density<-baumnyc$count_tree/baumnyc$zcta_surface
 
-``` 
+coords<-st_coordinates(baumnyc$geometry)
+baumnyc$lat<-coords[1,]
+baumnyc$long<-coords[2,]
+baumnyc$geometry<-NULL
+rm(coords)
+```
+
 
 ### Recoding and grouping of data
 
@@ -137,6 +145,18 @@ baumnyc_gp$eth_hisp<-as.numeric(demog_ny$B03002_012E[match(baumnyc_gp$ZCTA, demo
 baumnyc_gp$eth_other<-1-(baumnyc_gp$eth_white_nonhisp+baumnyc_gp$eth_afroam_nonhisp+baumnyc_gp$eth_asian_nonhisp+baumnyc_gp$eth_hisp)
 baumnyc_gp$count_tree<-count_tree[as.character(baumnyc_gp$ZCTA)]
 baumnyc_gp$count_tree[is.na(baumnyc_gp$count_tree)]<-0
+baumnyc_gp$surface<-as.numeric(zcta_ny$surface[match(baumnyc_gp$ZCTA, zcta_ny$ZCTA5CE10)])/1000000
+baumnyc_gp$geometry<-NULL
 
-names()
+baumnyc_gp$pop_density<-baumnyc_gp$pop/baumnyc_gp$surface
+baumnyc_gp$tree_density<-baumnyc_gp$count_tree/baumnyc_gp$surface
+```
+
+### Writing data to CSV
+
+```{r csv}
+
+write.csv(baumnyc, here("Data", "Refined", "baumnyc2.csv"))
+write.csv(baumnyc_gp, here("Data", "Refined", "baumnyc_gp2.csv"))
+
 ```

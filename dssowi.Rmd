@@ -16,7 +16,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r lib, message=F}
 #install.packages("dplyr")
 #install.packages("ggplot2")
-#install.pakages("readr")
+#install.packages("readr")
 
 library(dplyr)
 library(ggplot2)
@@ -26,3 +26,50 @@ library(readr)
 ### Data Import
 
 Data has been previously selected and modified in "data_import.Rmd".
+
+```{r dataimport}
+
+baumnyc<-read.csv(here("Data", "Refined", "baumnyc2.csv"))
+baumnyc_gp<-read.csv(here("Data", "Refined", "baumnyc_gp2.csv"))
+
+baumnyc$X<-NULL
+baumnyc_gp$X<-NULL
+```
+
+
+### Multi-lineare Regression
+
+#### Bäumedensität
+
+H1.1 - Viertel mit höheren Einkommen haben mehr Baümedensität.
+H2.1 - Viertel mit nicht-weissen/(Latino- Afroam?) Ethnien haben weniger Baümedensität.
+
+```{r multireg1}
+
+requiredh11<-c( "ZCTA5CE10", "mean_income", "eth_white_nonhisp", "eth_afroam_nonhisp", "eth_asian_nonhisp", "eth_hisp", "eth_other", "pop_density", "tree_density", "condition")
+
+df_h11$mean_income
+
+df_h11<-na.omit(baumnyc[,requiredh11])
+
+quantile(df_h11$mean_income, 0.75)
+
+df_h11$income_category<-ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.25), 1, 
+                               ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.5), 2,
+                                      ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.75), 3, 4)))
+regh11<-lm(condition~income_category, df_h11)
+summary(regh11)
+
+``` 
+
+```{r tests}
+
+#HOMOSKEDASTIZITÄT
+
+plot(regh11)
+lmtest::bptest(regh11)
+
+View(table(df_h11$mean_income))
+
+```
+

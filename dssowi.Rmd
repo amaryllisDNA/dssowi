@@ -17,10 +17,16 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages("dplyr")
 #install.packages("ggplot2")
 #install.packages("readr")
+#install.packages("olsrr")
+#install.packages("lmtest")
+#install.packages("moments")
 
 library(dplyr)
 library(ggplot2)
 library(readr)
+library(lmtest)
+library(olsrr)
+library(moments)
 ```
 
 ### Data Import
@@ -46,30 +52,51 @@ H2.1 - Viertel mit nicht-weissen/(Latino- Afroam?) Ethnien haben weniger Baümed
 
 ```{r multireg1}
 
-requiredh11<-c( "ZCTA5CE10", "mean_income", "eth_white_nonhisp", "eth_afroam_nonhisp", "eth_asian_nonhisp", "eth_hisp", "eth_other", "pop_density", "tree_density", "condition")
+requiredh11<-c( "ZCTA", "mean_income", "eth_white_nonhisp", "eth_afroam_nonhisp", "eth_asian_nonhisp", "eth_hisp", "eth_other", "pop_density", "tree_density")
 
-df_h11$mean_income
 
-df_h11<-na.omit(baumnyc[,requiredh11])
-
-quantile(df_h11$mean_income, 0.75)
-
+df_h11<-na.omit(baumnyc_gp[,requiredh11])
 df_h11$income_category<-ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.25), 1, 
                                ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.5), 2,
                                       ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.75), 3, 4)))
-regh11<-lm(condition~income_category, df_h11)
+regh11<-lm(tree_density~mean_income, df_h11_no)
 summary(regh11)
+
+summary(df_h11$tree_density)
 
 ``` 
 
 ```{r tests}
 
-#HOMOSKEDASTIZITÄT
+#OUTLIERS
+
+ols_plot_resid_stud(regh11) #no values out of bounds
+ols_plot_resid_lev(regh11)
+ols_plot_cooksd_chart(regh11)
+
+df_h11_no<-df_h11[-85,]
+df_h11_no<-df_h11_no[-4,]
+
+#LINEARITY - erfüllt 
 
 plot(regh11)
-lmtest::bptest(regh11)
+pairs(df_h11)
+raintest(regh11)
 
-View(table(df_h11$mean_income))
+#MULTI-COLINEARITY NONE
 
+#HETEROSKEDASTICITY
+
+plot(regh11)
+
+ols_plot_resid_fit(regh11)
+ols_test_breusch_pagan(regh11)
+
+#NORMALITY
+ols_plot_resid_qq(regh11)
+shapiro.test(regh11$residuals)
+kurtosis(regh11$residuals)
+agostino.test(regh11$residuals)
+anscombe.test(regh11$residuals)
 ```
 

@@ -59,7 +59,7 @@ df_h11<-na.omit(baumnyc_gp[,requiredh11])
 df_h11$income_category<-ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.25), 1, 
                                ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.5), 2,
                                       ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.75), 3, 4)))
-regh11<-lm(tree_density~mean_income, df_h11_no)
+regh11<-lm(tree_density~mean_income + eth_afroam_nonhisp + eth_asian_nonhisp + eth_hisp + eth_other + pop_density, df_h11_no)
 summary(regh11)
 
 summary(df_h11$tree_density)
@@ -74,8 +74,8 @@ ols_plot_resid_stud(regh11) #no values out of bounds
 ols_plot_resid_lev(regh11)
 ols_plot_cooksd_chart(regh11)
 
-df_h11_no<-df_h11[-85,]
-df_h11_no<-df_h11_no[-4,]
+df_h11_no<-df_h11[-168,]
+df_h11_no<-df_h11_no[-33,]
 
 #LINEARITY - erfüllt 
 

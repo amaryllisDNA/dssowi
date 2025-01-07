@@ -140,7 +140,26 @@ library(here)
 json_data <- fromJSON(here("Data", "Raw","zbp.json"))
 data_frame <- as.data.frame(json_data, stringsAsFactors = FALSE)
 write.csv(data_frame, "zbp.csv", row.names = FALSE)
-data1<-read.csv(here("Data","Refined","baumnyc2.csv"))
-data2<-read.csv(here("Data","Raw","zbp.csv"))
-baumnyc3 <- rbind(data1, data2)
+
+# Load necessary library for "here" function if not already loaded
+library(here)
+
+data1 <- read.csv(here("Data", "Raw", "zbp.csv"))
+data2 <- read.csv(here("Data", "Refined", "Baumnyc2.csv"))
+
+data2$ESTAB <- NA
+
+for (i in 1:nrow(data2)) {
+  
+  match_index <- which(data1$zipcode == data2$zipcode[i])
+  
+  
+  if (length(match_index) > 0) {
+    data2$ESTAB[i] <- data1$ESTAB[match_index]
+  }
+}
+
+
+write.csv(data2, here("Data", "Refined", "Baumnyc2_updated.csv"), row.names = FALSE)
+
 ```

@@ -123,9 +123,9 @@ df_h12<-na.omit(baumnyc[,requiredh12])
 df_h12$income_category<-ifelse(df_h12$mean_income<=quantile(df_h12$mean_income, 0.25), 1, 
                                ifelse(df_h12$mean_income<=quantile(df_h12$mean_income, 0.5), 2,
                                       ifelse(df_h12$mean_income<=quantile(df_h12$mean_income, 0.75), 3, 4)))
-df_h12_log<-log(df_h12[-188,])
-df_h12_log<-df_h11_log[-39,]
-index(df_h11$ZCTA == 11005,)
+#df_h12_log<-log(df_h12[-188,])
+#df_h12_log<-df_h11_log[-39,]
+#index(df_h11$ZCTA == 11005,)
 
 regh12<-glm(native~mean_income + eth_afroam_nonhisp + eth_asian_nonhisp + eth_hisp + eth_other + pop_density, df_h12, family="binomial")
 
@@ -150,20 +150,21 @@ library(here)
 
 data1 <- read.csv(here("Data", "Raw", "zbp.csv"))
 data2 <- read.csv(here("Data", "Refined", "Baumnyc2.csv"))
+names(data1)
 
 data2$ESTAB <- NA
 
 for (i in 1:nrow(data2)) {
   
-  match_index <- which(data1$zipcode == data2$zipcode[i])
+  match_index <- which(data1$V2 == data2$zipcode[i])
   
   
   if (length(match_index) > 0) {
-    data2$ESTAB[i] <- data1$ESTAB[match_index]
+    data2$ESTAB[i] <- data1$V1[match_index]
   }
 }
 
 
-write.csv(data2, here("Data", "Refined", "Baumnyc2_updated.csv"), row.names = FALSE)
+write.csv(data2, here("Data", "Refined", "Baumnyc2_update.csv"), row.names = FALSE)
 
 ```

@@ -168,3 +168,10 @@ for (i in 1:nrow(data2)) {
 write.csv(data2, here("Data", "Refined", "Baumnyc2_update.csv"), row.names = FALSE)
 
 ```
+``` {r}
+data_cluster<-read.csv(here("Data","Refined","Baumnyc2_update.csv"))
+names(data_cluster) 
+data_cluster$ESTAB
+summary(data_cluster)
+
+```

@@ -2,9 +2,13 @@
 title: "DS_Project"
 author: "Anthéa von Borowski, Mengjiao li, Leonie Demsar"
 date: "2024-12-09"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
 ---
+#Der Mensch fördert und hemmt andere Arten in der städtischen Landschaft und prägt damit die Muster der biologischen Vielfalt.Institutioneller Rassismus kann der Verteilung städtischer Arten zugrunde liegen, indem er zeitlich und räumlich unverhältnismäßige Ressourcen schafft.durch die Schaffung unverhältnismäßiger Ressourcen in Raum und Zeit.ob der heutige Bestand, die Vielfalt und die Zusammensetzung von Straßenbäumen in New York City, USA widerspiegeln
 
+Übersetzt mit DeepL.com (kostenlose Version)
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```

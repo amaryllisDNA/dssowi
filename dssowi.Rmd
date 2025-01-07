@@ -20,13 +20,15 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages("olsrr")
 #install.packages("lmtest")
 #install.packages("moments")
-
+install.packages("here")
+install.packages("Rtools")
 library(dplyr)
 library(ggplot2)
 library(readr)
 library(lmtest)
 library(olsrr)
 library(moments)
+library(here)
 ```
 
 ### Data Import
@@ -59,9 +61,9 @@ df_h11<-na.omit(baumnyc_gp[,requiredh11])
 df_h11$income_category<-ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.25), 1, 
                                ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.5), 2,
                                       ifelse(df_h11$mean_income<=quantile(df_h11$mean_income, 0.75), 3, 4)))
-df_h11_log<-log(df_h11[-188,])
-df_h11_log<-df_h11_log[-39,]
-index(df_h11$ZCTA == 11005,)
+#df_h11_log<-log(df_h11[-188,])
+#df_h11_log<-df_h11_log[-39,]
+#index(df_h11$ZCTA == 11005,)
 
 regh11<-lm(tree_density~mean_income + eth_afroam_nonhisp + eth_asian_nonhisp + eth_hisp + eth_other + pop_density, df_h11)
 summary(regh11)
@@ -69,6 +71,7 @@ summary(regh11)
 summary(df_h11$tree_density)
 
 ``` 
+
 
 ```{r tests}
 
@@ -129,6 +132,15 @@ summary(df_h11$tree_density)
 
 ``` 
 
-```{r tests2}
+```{r K-means clustering}
 
+install.packages("jsonlite")
+library(jsonlite)
+library(here)
+json_data <- fromJSON(here("Data", "Raw","zbp.json"))
+data_frame <- as.data.frame(json_data, stringsAsFactors = FALSE)
+write.csv(data_frame, "zbp.csv", row.names = FALSE)
+data1<-read.csv(here("Data","Refined","baumnyc2.csv"))
+data2<-read.csv(here("Data","Raw","zbp.csv"))
+baumnyc3 <- rbind(data1, data2)
 ```

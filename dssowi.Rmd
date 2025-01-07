@@ -1,6 +1,6 @@
 ---
 title: "DS_Project"
-author: "Anthéa von Borowski, Mengjiao li, Leonie Demsar"
+author: "Anthéa von Borowski, Mengjiao li"
 date: "2024-12-09"
 output:
   html_document:

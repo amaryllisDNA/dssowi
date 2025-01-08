@@ -7,44 +7,45 @@ output:
   html_document:
     df_print: paged
 ---
-#Thema und Forschungsfrage
+# Thema und Forschungsfrage
 
-#Nachhaltige Städte können nicht ohne städtische Wälder entwickelt werden. Stadtbäume, die Säulen der städtischen Wälder, spielen eine zentrale Rolle, indem sie unsere Gesundheit fördern, die Luft reinigen, Kohlendioxid speichern und die lokale Umgebung kühlen. Vor diesem Hintergrund haben wir uns für das Thema „Sozio-ökonomische Diskriminierung und Baumverteilung in US-Städten – am Beispiel New York City“ entschieden.
+Nachhaltige Städte können nicht ohne städtische Wälder entwickelt werden. Stadtbäume, die Säulen der städtischen Wälder, spielen eine zentrale Rolle, indem sie unsere Gesundheit fördern, die Luft reinigen, Kohlendioxid speichern und die lokale Umgebung kühlen. Vor diesem Hintergrund haben wir uns für das Thema „Sozio-ökonomische Diskriminierung und Baumverteilung in US-Städten – am Beispiel New York City“ entschieden.
 
-#Unsere Forschungsfrage lautet:
-#„Wie spiegeln sich sozio-ökonomische Diskriminierungen in der Baumverteilung in US-Städten wider?“
-#Hypothesen
+Unsere Forschungsfrage lautet:
+„Wie spiegeln sich sozio-ökonomische Diskriminierungen in der Baumverteilung in US-Städten wider?“
 
-##Stadtviertel mit höherem Einkommen weisen eine höhere Baumdichte auf.
-##Stadtviertel mit höherem Einkommen haben eine größere Anzahl exotischer Baumarten.
-##Stadtviertel mit einem hohen Anteil nicht-weißer Bevölkerungsgruppen (z. B. Latino oder Afroamerikaner) haben eine geringere Baumdichte.
-##Stadtviertel mit einem hohen Anteil nicht-weißer Bevölkerungsgruppen verfügen über weniger exotische Baumarten.
+# Hypothesen
+
+* Stadtviertel mit höherem Einkommen weisen eine höhere Baumdichte auf.
+* Stadtviertel mit höherem Einkommen haben eine größere Anzahl exotischer Baumarten.
+* Stadtviertel mit einem hohen Anteil nicht-weißer Bevölkerungsgruppen (z. B. Latino oder Afroamerikaner) haben eine geringere Baumdichte.
+* Stadtviertel mit einem hohen Anteil nicht-weißer Bevölkerungsgruppen verfügen über weniger exotische Baumarten.
 
 #Daten
 
-#Für die Untersuchung wurde ein umfassender und standardisierter Datensatz mit 5.660.237 Bäumen aus New York City zusammengestellt. Der Datensatz enthält detaillierte Informationen über:
+Für die Untersuchung wurde ein umfassender und standardisierter Datensatz mit 5.660.237 Bäumen aus New York City zusammengestellt. Der Datensatz enthält detaillierte Informationen über:
 
-##Baummerkmale: Standort, Baumart, Status der Einheimischen (einheimisch oder eingeführt), Gesundheitszustand, Größe.
-##Umweltmerkmale: Unterscheidung zwischen Parks und urbanen Gebieten.
+* Baummerkmale: Standort, Baumart, Status der Einheimischen (einheimisch oder eingeführt), Gesundheitszustand, Größe.
+* Umweltmerkmale: Unterscheidung zwischen Parks und urbanen Gebieten.
 
-#Zusätzlich wurden weitere Datensätze integriert, die sozio-ökonomische und demografische Merkmale abdecken:
+Zusätzlich wurden weitere Datensätze integriert, die sozio-ökonomische und demografische Merkmale abdecken:
 
-##Einkommensdaten der Stadtviertel.
-##Demografische Informationen wie ethnische Zusammensetzung.
-##Daten zur Stadtstruktur, z. B. Dichte von Wohn- und Geschäftsgebäuden.
+* Einkommensdaten der Stadtviertel.
+* Demografische Informationen wie ethnische Zusammensetzung.
+* zur Stadtstruktur, z. B. Dichte von Wohn- und Geschäftsgebäuden.
 
-#Die zugrunde liegenden Informationen stammen aus Baumbestandsaufnahmen, die auf Stadt- und Stadtteilebene durchgeführt wurden.
+Die zugrunde liegenden Informationen stammen aus Baumbestandsaufnahmen, die auf Stadt- und Stadtteilebene durchgeführt wurden.
 
 #Methodik
 
-#Die Hypothesen werden mithilfe moderner Machine-Learning-Methoden überprüft:
+Die Hypothesen werden mithilfe moderner Machine-Learning-Methoden überprüft:
 
-##Supervised Learning:
-###Lineare Regression: Zur Untersuchung der Beziehung zwischen Einkommen/Ethnizität und Baumdichte.
-###Logistische Regression: Für die Analyse kategorischer Merkmale wie „exotische vs. einheimische Baumarten“.
+* Supervised Learning: #Das ist kein Machine Learning
+  + Regression: Zur Untersuchung der Beziehung zwischen Einkommen/Ethnizität und Baumdichte.
+  + Logistische Regression: Für die Analyse kategorischer Merkmale wie „exotische vs. einheimische Baumarten“.
 
-##Unsupervised Learning:
-###K-Means-Clustering: Zum Erkennen von Mustern und Clusterbildung in der Verteilung von Baumdichte und Baumarten auf Basis sozio-ökonomischer und ethnischer Variablen.
+* Unsupervised Learning:
+  + K-Means-Clustering: Zum Erkennen von Mustern und Clusterbildung in der Verteilung von Baumdichte und Baumarten auf Basis sozio-ökonomischer und ethnischer Variablen.
 
 
 ```{r setup, include=FALSE}
@@ -62,8 +63,8 @@ knitr::opts_chunk$set(echo = TRUE)
 #install.packages("olsrr")
 #install.packages("lmtest")
 #install.packages("moments")
-install.packages("here")
-install.packages("Rtools")
+#install.packages("here")
+#install.packages("Rtools")
 library(dplyr)
 library(ggplot2)
 library(readr)
@@ -81,7 +82,7 @@ Data has been previously selected and modified in "data_import.Rmd".
 
 baumnyc<-read.csv(here("Data", "Refined", "baumnyc2.csv"))
 baumnyc_gp<-read.csv(here("Data", "Refined", "baumnyc_gp2.csv"))
-
+zbp<-read.csv(here("Data", "Raw"))
 baumnyc$X<-NULL
 baumnyc_gp$X<-NULL
 ```
@@ -248,6 +249,7 @@ df.k<-kmeans(df,3,iter.max=10,nstart=2)
 print(df.k)
 fviz_cluster(data=df,df.k)
 ```
+<<<<<<< HEAD
 ```{r }
 df.k<-kmeans(df,4,iter.max=10,nstart=2)
 print(df.k)
@@ -277,6 +279,8 @@ aggregate(df,by=list(cluster=df$cluster),mean)
 ```
 
 
+=======
+>>>>>>> 1c37c08bb3ca1918284436b4e833dde27a8e386f
 #Literatur
 #McCoy, Dakota; Goulet-Scott, Benjamin; Meng, Weilin et al. (2022). A dataset of 5 million city trees from 63 US cities: species, location, nativity status, health, and more. [Dataset]. Dryad. https://doi.org/10.5061/dryad.2jm63xsrf
 #Burghardt KT, Avolio ML, Locke DH, Grove JM, Sonti NF, Swan CM. Current street tree communities reflect race-based housing policy and modern attempts to remedy environmental injustice. Ecology. 2023 Feb;104(2):e3881. doi: 10.1002/ecy.3881. Epub 2022 Dec 1. PMID: 36196604; PMCID: PMC10078568.

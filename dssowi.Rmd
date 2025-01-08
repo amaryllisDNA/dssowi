@@ -149,14 +149,14 @@ write.csv(data_frame, "zbp.csv", row.names = FALSE)
 library(here)
 
 data1 <- read.csv(here("Data", "Raw", "zbp.csv"))
-data2 <- read.csv(here("Data", "Refined", "Baumnyc2.csv"))
+data2 <- read.csv(here("Data", "Refined", "Baumnyc_gp2.csv"))
 names(data1)
 
 data2$ESTAB <- NA
 
 for (i in 1:nrow(data2)) {
   
-  match_index <- which(data1$V2 == data2$zipcode[i])
+  match_index <- which(data1$V2 == data2$ZCTA[i])
   
   
   if (length(match_index) > 0) {
@@ -165,13 +165,31 @@ for (i in 1:nrow(data2)) {
 }
 
 
-write.csv(data2, here("Data", "Refined", "Baumnyc2_update.csv"), row.names = FALSE)
+write.csv(data2, here("Data", "Refined", "Baumnyc2_updated.csv"), row.names = FALSE)
+fiele<-read.csv(here("Data","Refined","Baumnyc2_updated.csv"))
+str(fiele)
 
 ```
+
 ``` {r}
-data_cluster<-read.csv(here("Data","Refined","Baumnyc2_update.csv"))
-names(data_cluster) 
-data_cluster$ESTAB
-summary(data_cluster)
+library(ggplot2)
+library(factoextra)
+library(FactoMineR)
+data_cluster<-read.csv(here("Data","Refined","Baumnyc2_updated.csv"))
 
+data_cluster$ESTAB<-as.numeric(data_cluster$ESTAB)
+data_cluster$ZCTA<-as.character(data_cluster$ZCTA)
+data_cluster$ZCTA<-as.integer(data_cluster$ZCTA)
+rownames(data_cluster)<-data_cluster$X
+df<-scale(data_cluster[,c("ESTAB","eth_afroam_nonhisp","eth_asian_nonhisp","eth_hisp","eth_other","pop_density","tree_density")])
+summary(df)  # Übersicht der Daten
+anyNA(df)    # Prüft, ob `NA`-Werte vorhanden sind
+is.nan(df)   # Prüft auf `NaN`-Werte
+is.infinite(df)  # Prüft auf `Inf`-Werte
+df[is.na(df)] <- 0 # Ersetzt fehlende Werte durch 0
+
+
+
+fviz_nbclust(df,kmeans,method="wss")+geom_vline(xintercept=6,linetype=2)+labs(title="Elbow methode")
 ```
+

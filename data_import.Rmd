@@ -37,6 +37,9 @@ library(car)
 library(httr)
 library(jsonlite)
 library(here)
+library(factoextra)
+library(FactoMineR)
+
 
 ```
 
@@ -156,6 +159,8 @@ baumnyc_gp$geometry<-NULL
 
 baumnyc_gp$pop_density<-baumnyc_gp$pop/baumnyc_gp$surface
 baumnyc_gp$tree_density<-baumnyc_gp$count_tree/baumnyc_gp$surface
+#baumnyc_gp<-baumnyc_gp[-is.na(baumnyc_gp$ZCTA),]
+
 ```
 
 # Including business/ residential data
@@ -177,13 +182,24 @@ baumnyc_gp$housing_pop<-baumnyc_gp$housing_ttl/baumnyc_gp$pop
 baumnyc_gp$ESTAB<-as.numeric(zbp$ESTAB[match(baumnyc_gp$ZCTA, zbp$zipcode)])
 baumnyc_gp$ESTAB_density<-baumnyc_gp$ESTAB/baumnyc_gp$surface
 baumnyc_gp$ESTAB_pop<-baumnyc_gp$ESTAB/baumnyc_gp$pop
-baumnyc_gp$ESTAB_housing<-baumnyc_gp$ESTAB/baumnyc_gp$housing_ttl
+baumnyc_gp$ESTAB_housing<-baumnyc_gp$ESTAB*100/baumnyc_gp$housing_ttl
 baumnyc_gp$PAYANN<-as.numeric(zbp$PAYANN[match(baumnyc_gp$ZCTA, zbp$zipcode)])
 baumnyc_gp$PAYANN_density<-baumnyc_gp$PAYANN/baumnyc_gp$surface
 baumnyc_gp$PAYANN_pop<-baumnyc_gp$PAYANN/baumnyc_gp$pop
 
-
+baumnyc_gp<-baumnyc_gp[!is.na(baumnyc_gp$ZCTA),]
 ``` 
+
+### Classification business / residential
+
+```{r class_norm}
+set.seed(123) # For reproductibility
+
+busres<-data.frame(ZCTA = baumnyc_gp$ZCTA, ESTAB_housing = baumnyc_gp$ESTAB_housing, PAYANN_density = baumnyc_gp$PAYANN_density, ESTAB_density = baumnyc_gp$ESTAB_density, housing_density = baumnyc_gp$housing_density)
+rownames(busres)<-as.character(busres$ZCTA)
+busres$ZCTA<-NULL
+busres<-scale(busres)
+```
 
 ### Writing data to CSV
 

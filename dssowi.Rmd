@@ -3,6 +3,7 @@ title: "DS_Project"
 author: "Anthéa von Borowski, Mengjiao li"
 date: "2024-12-09"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
 ---
@@ -182,8 +183,6 @@ library(here)
 json_data <- fromJSON(here("Data", "Raw","zbp.json"))
 data_frame <- as.data.frame(json_data, stringsAsFactors = FALSE)
 write.csv(data_frame, "zbp.csv", row.names = FALSE)
-
-# Load necessary library for "here" function if not already loaded
 library(here)
 
 data1 <- read.csv(here("Data", "Raw", "zbp.csv"))
@@ -227,25 +226,61 @@ anyNA(df)    # Prüft, ob `NA`-Werte vorhanden sind
 is.nan(df)   # Prüft auf `NaN`-Werte
 is.infinite(df)  # Prüft auf `Inf`-Werte
 df <- na.omit(df)
-
+set.seed(123)
 
 
 fviz_nbclust(df,kmeans,method="wss")+geom_vline(xintercept=4,linetype=2)+labs(title="Elbow methode")
 ```
+# Nach Elbow Methode soll k == 3 oder 4 sein.  
 ```{r}
 fviz_nbclust(df,kmeans,method="silhouette")+labs(subtitle="Silhouette method")
 ```
+#Nach Silouhette Methode ist 8 ein guter Wert für K. 
+
 ```{r}
 fviz_nbclust(df,kmeans,nstart=2,method="gap_stat",nboot=20)+
   geom_vline(xintercept=7,linetype=2)+
   labs(subtitle="Gap satistic method")
 ```
-
+# Gap statistic methode emphehlt den Wert von 9.
+# Dann schauen wir welcher K-Wert Sinn macht.
 ```{r}
 df.k<-kmeans(df,3,iter.max=10,nstart=2)
 print(df.k)
 fviz_cluster(data=df,df.k)
 ```
+<<<<<<< HEAD
+```{r }
+df.k<-kmeans(df,4,iter.max=10,nstart=2)
+print(df.k)
+fviz_cluster(data=df,df.k)
+```
+
+```{r }
+df.k<-kmeans(df,9,iter.max=10,nstart=2)
+print(df.k)
+fviz_cluster(data=df,df.k)
+```
+# k=3 oder k= 4 sieht gut aus. K=7 ist schon schlecht. K=9 wird auf jeden Fall schlechter. 
+# Deshalb 3 und 4 sind die besten Werte für k. Da wenn k=3, es weniger Überlappung gibt, ist 3 der beste Wert für K.Jetzt checken wir, mean von allen Clusters to 
+```{r}
+df.k<-kmeans(df,3,iter.max=10,nstart=2)
+print(df.k)
+df<-data.frame(df)
+df$cluster<-df.k$cluster
+```
+```{r}
+fviz_cluster(data=df,df.k)
+```
+#Wir checken jetzt Mittelwert aller Cluster, um wesentliche Unterschiede zwischen den Clustern zu untersuchen
+```{r}
+aggregate(df,by=list(cluster=df$cluster),mean)
+
+```
+
+
+=======
+>>>>>>> 1c37c08bb3ca1918284436b4e833dde27a8e386f
 #Literatur
 #McCoy, Dakota; Goulet-Scott, Benjamin; Meng, Weilin et al. (2022). A dataset of 5 million city trees from 63 US cities: species, location, nativity status, health, and more. [Dataset]. Dryad. https://doi.org/10.5061/dryad.2jm63xsrf
 #Burghardt KT, Avolio ML, Locke DH, Grove JM, Sonti NF, Swan CM. Current street tree communities reflect race-based housing policy and modern attempts to remedy environmental injustice. Ecology. 2023 Feb;104(2):e3881. doi: 10.1002/ecy.3881. Epub 2022 Dec 1. PMID: 36196604; PMCID: PMC10078568.

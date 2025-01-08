@@ -24,6 +24,8 @@ rm(list=ls())
 #install.packages("Hmisc")
 #install.packages("car")
 #install.packages("here")
+#install.packages("httr")
+#install.packages("jsonlite")
 
 library(sf)
 library(dplyr)
@@ -32,6 +34,8 @@ library(readr)
 library(tidyverse)
 library(Hmisc)
 library(car)
+library(httr)
+library(jsonlite)
 library(here)
 
 ```
@@ -39,19 +43,16 @@ library(here)
 
 ### Raw Data
 
-```{r rawdata}
-#ROHDATEN
-#inc_zip<-read.csv(".\\Data\\Raw\\us_income_zipcode.csv")
-#zcta<-st_read(".\\Data\\Raw\\ZCTA\\tl_2016_us_zcta510.shp")
-#demog<-read.csv(".\\Data\\Raw\\ethn_zip.csv")
-#data_nyc<-read.csv(".\\Data\\Raw\\baumnyc.csv")
+Zunächst werden die Daten mithilfe der Here-Library heruntergeladen.
 
-# ALTERNATIVE MIT HERE()
+```{r rawdata}
 
 inc_zip<-read.csv(here("Data", "Raw", "us_income_zipcode.csv"))
 zcta<-st_read(here("Data", "Raw", "ZCTA", "tl_2016_us_zcta510.shp"))
 data_nyc<-read.csv(here("Data", "Raw", "baumnyc.csv"))
 demog<-read.csv(here("Data", "Raw", "ethn_zip.csv"))
+zbp<-fromJSON(here("Data", "Raw", "zbp.json"))
+housing<-read.csv(here("Data", "Raw", "newyork_housingunits.csv"))
 
 ```
 
@@ -68,8 +69,11 @@ zcta_ny$surface<-st_area(zcta_ny)
 
 data <- st_join(st_sf(geometry = points_ny), zcta_ny, join = st_within) #join datasets to match zcta to trees
 required_columns<-c("common_name","scientific_name","city", "state", "geometry", "zipcode", "condition", "native", "greater_metro", "ZCTA5CE10") 
+
 baumnyc<-data[, required_columns, drop = F]
 baumnyc$park<-is.na(baumnyc$ZCTA5CE10)
+
+
 
 count_tree<-table(baumnyc$ZCTA)
 count_tree
@@ -101,11 +105,11 @@ demog_ny<-demog[-1,]
 demog_ny<-demog[demog$ZCTA %in% 6390:14905,]
 
 baumnyc$pop<-as.numeric(demog_ny$B03002_001E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])
-baumnyc$eth_white_nonhisp<-as.numeric(demog_ny$B03002_003E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
-baumnyc$eth_afroam_nonhisp<-as.numeric(demog_ny$B03002_004E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
-baumnyc$eth_asian_nonhisp<-as.numeric(demog_ny$B03002_006E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
-baumnyc$eth_hisp<-as.numeric(demog_ny$B03002_012E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])/baumnyc$pop
-baumnyc$eth_other<-1-(baumnyc$eth_white_nonhisp+baumnyc$eth_afroam_nonhisp+baumnyc$eth_asian_nonhisp+baumnyc$eth_hisp)
+baumnyc$eth_white_nonhisp<-as.numeric(demog_ny$B03002_003E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])*100/baumnyc$pop
+baumnyc$eth_afroam_nonhisp<-as.numeric(demog_ny$B03002_004E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])*100/baumnyc$pop
+baumnyc$eth_asian_nonhisp<-as.numeric(demog_ny$B03002_006E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])*100/baumnyc$pop
+baumnyc$eth_hisp<-as.numeric(demog_ny$B03002_012E[match(baumnyc$ZCTA5CE10, demog_ny$ZCTA)])*100/baumnyc$pop
+baumnyc$eth_other<-100-(baumnyc$eth_white_nonhisp+baumnyc$eth_afroam_nonhisp+baumnyc$eth_asian_nonhisp+baumnyc$eth_hisp)
 baumnyc$count_tree<-count_tree[baumnyc$ZCTA5CE10]
 baumnyc$count_tree[is.na(baumnyc$count_tree)]<-0
 baumnyc$zcta_surface<-as.numeric(zcta_ny$surface[match(baumnyc$ZCTA5CE10, zcta_ny$ZCTA5CE10)])/1000000
@@ -117,6 +121,8 @@ baumnyc$lat<-coords[1,]
 baumnyc$long<-coords[2,]
 baumnyc$geometry<-NULL
 rm(coords)
+
+unique(baumnyc$scientific_name)
 ```
 
 
@@ -152,11 +158,41 @@ baumnyc_gp$pop_density<-baumnyc_gp$pop/baumnyc_gp$surface
 baumnyc_gp$tree_density<-baumnyc_gp$count_tree/baumnyc_gp$surface
 ```
 
+# Including business/ residential data
+
+```{r zbp}
+
+colnames(zbp)<-c("ESTAB", "PAYANN", "zipcode")
+zbp<-as.data.frame(zbp[-1,])
+label(housing)<-housing[1,]
+housing<-housing[-1,]
+housing$ZCTA<-as.numeric(substring(housing$NAME, 7))
+
+baumnyc_gp$housing_ttl<-as.numeric(housing$S2504_C01_001E[match(baumnyc_gp$ZCTA, housing$ZCTA)])
+baumnyc_gp$housing_own<-as.numeric(housing$S2504_C02_001E[match(baumnyc_gp$ZCTA, housing$ZCTA)])
+baumnyc_gp$housing_rent<-as.numeric(housing$S2504_C03_001E[match(baumnyc_gp$ZCTA, housing$ZCTA)])
+baumnyc_gp$housing_own_pct<-baumnyc_gp$housing_own*100/baumnyc_gp$housing_ttl
+baumnyc_gp$housing_density<-baumnyc_gp$housing_ttl/baumnyc_gp$surface
+baumnyc_gp$housing_pop<-baumnyc_gp$housing_ttl/baumnyc_gp$pop
+baumnyc_gp$ESTAB<-as.numeric(zbp$ESTAB[match(baumnyc_gp$ZCTA, zbp$zipcode)])
+baumnyc_gp$ESTAB_density<-baumnyc_gp$ESTAB/baumnyc_gp$surface
+baumnyc_gp$ESTAB_pop<-baumnyc_gp$ESTAB/baumnyc_gp$pop
+baumnyc_gp$ESTAB_housing<-baumnyc_gp$ESTAB/baumnyc_gp$housing_ttl
+baumnyc_gp$PAYANN<-as.numeric(zbp$PAYANN[match(baumnyc_gp$ZCTA, zbp$zipcode)])
+baumnyc_gp$PAYANN_density<-baumnyc_gp$PAYANN/baumnyc_gp$surface
+baumnyc_gp$PAYANN_pop<-baumnyc_gp$PAYANN/baumnyc_gp$pop
+
+
+``` 
+
 ### Writing data to CSV
 
 ```{r csv}
 
 write.csv(baumnyc, here("Data", "Refined", "baumnyc2.csv"))
 write.csv(baumnyc_gp, here("Data", "Refined", "baumnyc_gp2.csv"))
+
+colnames(zbp)<-zbp[1,]
+zbp<-zbp[-1,]
 
 ```

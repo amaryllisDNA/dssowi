@@ -245,3 +245,6 @@ df.k<-kmeans(df,3,iter.max=10,nstart=2)
 print(df.k)
 fviz_cluster(data=df,df.k)
 ```
+#Lietratur
+#McCoy, Dakota; Goulet-Scott, Benjamin; Meng, Weilin et al. (2022). A dataset of 5 million city trees from 63 US cities: species, location, nativity status, health, and more. [Dataset]. Dryad. https://doi.org/10.5061/dryad.2jm63xsrf
+#Burghardt KT, Avolio ML, Locke DH, Grove JM, Sonti NF, Swan CM. Current street tree communities reflect race-based housing policy and modern attempts to remedy environmental injustice. Ecology. 2023 Feb;104(2):e3881. doi: 10.1002/ecy.3881. Epub 2022 Dec 1. PMID: 36196604; PMCID: PMC10078568.

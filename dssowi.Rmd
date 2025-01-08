@@ -6,9 +6,46 @@ output:
   html_document:
     df_print: paged
 ---
-#Der Mensch fördert und hemmt andere Arten in der städtischen Landschaft und prägt damit die Muster der biologischen Vielfalt.Institutioneller Rassismus kann der Verteilung städtischer Arten zugrunde liegen, indem er zeitlich und räumlich unverhältnismäßige Ressourcen schafft.durch die Schaffung unverhältnismäßiger Ressourcen in Raum und Zeit.ob der heutige Bestand, die Vielfalt und die Zusammensetzung von Straßenbäumen in New York City, USA widerspiegeln
+#Thema und Forschungsfrage
 
-Übersetzt mit DeepL.com (kostenlose Version)
+#Nachhaltige Städte können nicht ohne städtische Wälder entwickelt werden. Stadtbäume, die Säulen der städtischen Wälder, spielen eine zentrale Rolle, indem sie unsere Gesundheit fördern, die Luft reinigen, Kohlendioxid speichern und die lokale Umgebung kühlen. Vor diesem Hintergrund haben wir uns für das Thema „Sozio-ökonomische Diskriminierung und Baumverteilung in US-Städten – am Beispiel New York City“ entschieden.
+
+#Unsere Forschungsfrage lautet:
+#„Wie spiegeln sich sozio-ökonomische Diskriminierungen in der Baumverteilung in US-Städten wider?“
+#Hypothesen
+
+##Stadtviertel mit höherem Einkommen weisen eine höhere Baumdichte auf.
+##Stadtviertel mit höherem Einkommen haben eine größere Anzahl exotischer Baumarten.
+##Stadtviertel mit einem hohen Anteil nicht-weißer Bevölkerungsgruppen (z. B. Latino oder Afroamerikaner) haben eine geringere Baumdichte.
+##Stadtviertel mit einem hohen Anteil nicht-weißer Bevölkerungsgruppen verfügen über weniger exotische Baumarten.
+
+#Daten
+
+#Für die Untersuchung wurde ein umfassender und standardisierter Datensatz mit 5.660.237 Bäumen aus New York City zusammengestellt. Der Datensatz enthält detaillierte Informationen über:
+
+##Baummerkmale: Standort, Baumart, Status der Einheimischen (einheimisch oder eingeführt), Gesundheitszustand, Größe.
+##Umweltmerkmale: Unterscheidung zwischen Parks und urbanen Gebieten.
+
+#Zusätzlich wurden weitere Datensätze integriert, die sozio-ökonomische und demografische Merkmale abdecken:
+
+##Einkommensdaten der Stadtviertel.
+##Demografische Informationen wie ethnische Zusammensetzung.
+##Daten zur Stadtstruktur, z. B. Dichte von Wohn- und Geschäftsgebäuden.
+
+#Die zugrunde liegenden Informationen stammen aus Baumbestandsaufnahmen, die auf Stadt- und Stadtteilebene durchgeführt wurden.
+
+#Methodik
+
+#Die Hypothesen werden mithilfe moderner Machine-Learning-Methoden überprüft:
+
+##Supervised Learning:
+###Lineare Regression: Zur Untersuchung der Beziehung zwischen Einkommen/Ethnizität und Baumdichte.
+###Logistische Regression: Für die Analyse kategorischer Merkmale wie „exotische vs. einheimische Baumarten“.
+
+##Unsupervised Learning:
+###K-Means-Clustering: Zum Erkennen von Mustern und Clusterbildung in der Verteilung von Baumdichte und Baumarten auf Basis sozio-ökonomischer und ethnischer Variablen.
+
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```

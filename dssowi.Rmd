@@ -3,9 +3,9 @@ title: "DS_Project"
 author: "Anthéa von Borowski, Mengjiao li"
 date: "2024-12-09"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 ---
 # Thema und Forschungsfrage
 
@@ -82,7 +82,7 @@ Data has been previously selected and modified in "data_import.Rmd".
 
 baumnyc<-read.csv(here("Data", "Refined", "baumnyc2.csv"))
 baumnyc_gp<-read.csv(here("Data", "Refined", "baumnyc_gp2.csv"))
-zbp<-read.csv(here("Data", "Raw"))
+zbp<-read.csv(here("Data", "Raw","zbp.csv"))
 baumnyc$X<-NULL
 baumnyc_gp$X<-NULL
 ```
@@ -175,74 +175,48 @@ summary(df_h11$tree_density)
 
 ``` 
 
-```{r K-means clustering}
 
-install.packages("jsonlite")
-library(jsonlite)
-library(here)
-json_data <- fromJSON(here("Data", "Raw","zbp.json"))
-data_frame <- as.data.frame(json_data, stringsAsFactors = FALSE)
-write.csv(data_frame, "zbp.csv", row.names = FALSE)
-library(here)
-
-data1 <- read.csv(here("Data", "Raw", "zbp.csv"))
-data2 <- read.csv(here("Data", "Refined", "Baumnyc_gp2.csv"))
-names(data1)
-
-data2$ESTAB <- NA
-
-for (i in 1:nrow(data2)) {
-  
-  match_index <- which(data1$V2 == data2$ZCTA[i])
-  
-  
-  if (length(match_index) > 0) {
-    data2$ESTAB[i] <- data1$V1[match_index]
-  }
-}
-
-
-write.csv(data2, here("Data", "Refined", "Baumnyc2_updated.csv"), row.names = FALSE)
-fiele<-read.csv(here("Data","Refined","Baumnyc2_updated.csv"))
-str(fiele)
-
-```
 
 ``` {r}
 library(ggplot2)
 library(factoextra)
 library(FactoMineR)
-data_cluster<-read.csv(here("Data","Refined","Baumnyc2_updated.csv"))
+data_cluster<-read.csv(here("Data","Refined","Baumnyc_gp2.csv"))
+names(data_cluster)
 
-data_cluster$ESTAB<-as.numeric(data_cluster$ESTAB)
-data_cluster$ZCTA<-as.character(data_cluster$ZCTA)
+data_cluster$X<-NULL
+
+for (col in names(data_cluster)) {
+  if (!is.numeric(data_cluster[[col]])) {
+    data_cluster[[col]] <- as.numeric(df[[col]])
+  }
+}
+data_cluster <- na.omit(data_cluster)
 data_cluster$ZCTA<-as.integer(data_cluster$ZCTA)
-data_cluster$mean_income<-as.numeric(data_cluster$mean_income)
-data_cluster$pop<-as.numeric(data_cluster$pop)
-rownames(data_cluster)<-data_cluster$X
-df<-scale(data_cluster[,c("ESTAB","eth_afroam_nonhisp","eth_asian_nonhisp","eth_hisp","eth_other","pop_density","tree_density","mean_income","surface","mean_native","mean_condition")])
-summary(df)  # Übersicht der Daten
-anyNA(df)    # Prüft, ob `NA`-Werte vorhanden sind
-is.nan(df)   # Prüft auf `NaN`-Werte
-is.infinite(df)  # Prüft auf `Inf`-Werte
-df <- na.omit(df)
+rownames(data_cluster)<-data_cluster$ZCTA
+df<-scale(data_cluster)
+
+
+
+head(df)
+
 set.seed(123)
 
 
-fviz_nbclust(df,kmeans,method="wss")+geom_vline(xintercept=4,linetype=2)+labs(title="Elbow methode")
+fviz_nbclust(data_cluster,kmeans,method="wss")+geom_vline(xintercept=3,linetype=2)+labs(title="Elbow methode")
 ```
-# Nach Elbow Methode soll k == 3 oder 4 sein.  
+# Nach Elbow Methode soll k == 2 oder 3 sein.  
 ```{r}
 fviz_nbclust(df,kmeans,method="silhouette")+labs(subtitle="Silhouette method")
 ```
-#Nach Silouhette Methode ist 8 ein guter Wert für K. 
+#Nach Silouhette Methode ist auch 3 ein guter Wert für K. 
 
 ```{r}
 fviz_nbclust(df,kmeans,nstart=2,method="gap_stat",nboot=20)+
-  geom_vline(xintercept=7,linetype=2)+
+  geom_vline(xintercept=3,linetype=2)+
   labs(subtitle="Gap satistic method")
 ```
-# Gap statistic methode emphehlt den Wert von 9.
+# Gap statistic methode emphehlt den Wert von 7.
 # Dann schauen wir welcher K-Wert Sinn macht.
 ```{r}
 df.k<-kmeans(df,3,iter.max=10,nstart=2)
@@ -251,18 +225,18 @@ fviz_cluster(data=df,df.k)
 ```
 <<<<<<< HEAD
 ```{r }
-df.k<-kmeans(df,4,iter.max=10,nstart=2)
+df.k<-kmeans(df,2,iter.max=10,nstart=2)
 print(df.k)
 fviz_cluster(data=df,df.k)
 ```
 
 ```{r }
-df.k<-kmeans(df,9,iter.max=10,nstart=2)
+df.k<-kmeans(df,7,iter.max=10,nstart=2)
 print(df.k)
 fviz_cluster(data=df,df.k)
 ```
-# k=3 oder k= 4 sieht gut aus. K=7 ist schon schlecht. K=9 wird auf jeden Fall schlechter. 
-# Deshalb 3 und 4 sind die besten Werte für k. Da wenn k=3, es weniger Überlappung gibt, ist 3 der beste Wert für K.Jetzt checken wir, mean von allen Clusters to 
+# k= 2 oder k= 3 sieht gut aus. K=7 ist schon schlecht (viele Überlappung,sieht wie 3 Clusters aus)
+# Wir haben uns für den Wert 3 entschieden. 
 ```{r}
 df.k<-kmeans(df,3,iter.max=10,nstart=2)
 print(df.k)
@@ -275,12 +249,17 @@ fviz_cluster(data=df,df.k)
 #Wir checken jetzt Mittelwert aller Cluster, um wesentliche Unterschiede zwischen den Clustern zu untersuchen
 ```{r}
 aggregate(df,by=list(cluster=df$cluster),mean)
-
 ```
+#(1) cluster 1 haben clustern sich: höhere mean_income, niedrigere mean_condition, niedrigere pop(aber höher pop_density?), höhere eth_white_nonhisp, niederigere tree_count(aber höhere tree_density),weniger surface, (aber viele Business, dehalb höher pop_density.....also, clustet 1 wegen business district? ,
+
+
+#(2) income in mittelwert, housing_own(hoch), ESATB(niedrig), : cluster 2 : Residential district.mit mehr exotischen Bäumen
+
+#(3) residential district mit niedrigere mean_income, mehr etho_afroam_nonhisp und eth_hisp, höher Pop und 
 
 
 =======
 >>>>>>> 1c37c08bb3ca1918284436b4e833dde27a8e386f
-#Literatur
+#Literaturdata:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAkCAYAAAD7PHgWAAABBklEQVR4Xu2XMQrCQBBFBQvR6wgJHsEDpHVjBDvvoBhbI3bWCkZbFUyhFrYiEat0WgmC6AVkdQqbIVmWZAOi82C64b+/bDWZDEEQP4phTLMaa9d003bTGMgu1psF7JVGNzuWPdzs18GDz443rgrIcndXbvW8g1axGfZKo7P2eBXc+WB74a3FGXtiA1kwzfnpqTF7hL3SwDfAaz+BqvjkwYADe6WhglQwJlQwKVQwKakVTGOoYNL5z4JxwBlUMEwqAu9SwTCpCLxLBcOkIvCusoKT9/WFQ6OkIvCukoJwt5rO0sehUVIReBem6ng+OLBXmnKjn4PbGM5PeKnqgXIlo5vHXoL4Nl4ZYqbbEGA7+wAAAABJRU5ErkJggg==
 #McCoy, Dakota; Goulet-Scott, Benjamin; Meng, Weilin et al. (2022). A dataset of 5 million city trees from 63 US cities: species, location, nativity status, health, and more. [Dataset]. Dryad. https://doi.org/10.5061/dryad.2jm63xsrf
 #Burghardt KT, Avolio ML, Locke DH, Grove JM, Sonti NF, Swan CM. Current street tree communities reflect race-based housing policy and modern attempts to remedy environmental injustice. Ecology. 2023 Feb;104(2):e3881. doi: 10.1002/ecy.3881. Epub 2022 Dec 1. PMID: 36196604; PMCID: PMC10078568.

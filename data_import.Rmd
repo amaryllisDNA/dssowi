@@ -1,10 +1,10 @@
 ---
 title: "Data Import"
-author: "Anthéa von Borowski, Mengjiao Li, Leonie Demsar"
+author: "Anthéa von Borowski, Mengjiao Li"
 date: "2024-12-09"
 output: pdf_document
 ---
-
+#Da wir für anderen Datensatz uns entschieden haben, haben wir viel Arbeit in Datensammlung,Integrieren,Strukturieren usw. gemacht.Folgende sind die Prozess von der Erstellung unseren finalen Datensätzen.
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -23,7 +23,9 @@ rm(list=ls())
 #install.packages("tidyverse")
 #install.packages("Hmisc")
 #install.packages("car")
-#install.packages("here")
+install.packages("jsonlite")
+
+install.packages("here")
 
 library(sf)
 library(dplyr)
@@ -34,7 +36,12 @@ library(Hmisc)
 library(car)
 library(here)
 library(factoextra)
-library(FactoMineR)
+library(FactoMineR)# Installieren des Pakets (nur einmal notwendig)
+
+
+# Laden des Pakets
+library(jsonlite)
+
 
 
 ```
@@ -55,7 +62,8 @@ inc_zip<-read.csv(here("Data", "Raw", "us_income_zipcode.csv"))
 zcta<-st_read(here("Data", "Raw", "ZCTA", "tl_2016_us_zcta510.shp"))
 data_nyc<-read.csv(here("Data", "Raw", "baumnyc.csv"))
 demog<-read.csv(here("Data", "Raw", "ethn_zip.csv"))
-
+zbp <- fromJSON(here("Data","Raw","zbp.json"))
+housing<-read.csv(here("Data","Raw","newyork_housingunits.csv"))
 ```
 
 
@@ -206,3 +214,4 @@ write.csv(baumnyc, here("Data", "Refined", "baumnyc2.csv"))
 write.csv(baumnyc_gp, here("Data", "Refined", "baumnyc_gp2.csv"))
 
 ```
+#Die Datensätze für weitere Analyse sind bereit. 
